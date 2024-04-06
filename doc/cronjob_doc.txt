@@ -1,0 +1,9 @@
+Cronjob bearbeiten:
+cronjob -e
+-> mit Nano öffnen
+
+30 8 * * * python3 /home/water/pflanze/cronjob_watering.py
+30 20 * * * python3 /home/water/pflanze/cronjob_watering.py
+
+Rechte für das Skript bereitstellen:
+chmod +x /home/water/pflanze/cronjob_watering.py

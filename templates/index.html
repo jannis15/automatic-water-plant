@@ -1,0 +1,88 @@
+{% extends 'base.html'%}
+{% block title %}
+Pflanzenbewässerung
+{% endblock %}
+{% block content %}
+<main class="container">
+    <header>
+        <h1>Pflanzenbewässerung</h1>
+    </header>
+    <button id="do-routine-btn" onclick="doRoutine()">Routine durchführen</button>
+    <button id="refresh-log-btn" onclick="refreshTable()" class="secondary">Aktualisieren</button>
+    <table id="tb-log">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Zeitpunkt</th>
+                <th>Status</th>
+                <th>Meldung</th>
+            </tr>
+        </thead>
+        <tbody id="tb-log-body">
+        </tbody>
+    </table>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    function convertToLocalTime(timeString) {
+        const date = new Date(timeString);
+        return date.toLocaleString();
+    };
+
+    function doAJAX(el, data) {
+        function StartLoading(el) {
+            el.setAttribute("aria-busy", "true");
+        };
+
+        function StopLoading(el) {
+            el.removeAttribute("aria-busy");
+        };
+
+        $.ajax({
+            url: data.url,
+            type: data.type,
+            dataType: "JSON",
+            beforeSend: () => {StartLoading(el)},
+            complete: () => {StopLoading(el)},
+            success: data.success,
+            error: data.error,
+        });
+    };
+
+    function refreshTable() {
+        doAJAX(document.getElementById("refresh-log-btn"), {
+            url: "/get-logging-data",
+            type: "GET",
+            success: (response) => {
+                $("#tb-log-body").empty();
+                $.each(response, function (index, value) {
+                    const row = $("<tr>");
+                    row.append($("<td>").text(value.id));
+                    row.append($("<td>").text(convertToLocalTime(value.time_stamp)));
+                    row.append($("<td>").text(value.status_type));
+                    row.append($("<td>").text(value.message));
+                    $("#tb-log-body").append(row);
+                });
+            },
+            error: (xhr) => {
+                console.log(xhr.responseJSON.detail);
+            },
+        });
+    };
+
+    function doRoutine() {
+        doAJAX(document.getElementById("do-routine-btn"), {
+            url: "/do-routine",
+            type: "POST",
+            success: () => {refreshTable()},
+            error: () => {refreshTable()},
+        });
+    };     
+
+    $(document).ready(() => {
+        refreshTable();
+    });
+</script>
+
+{% endblock %}
